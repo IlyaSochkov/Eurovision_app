@@ -70,12 +70,16 @@ router.post('/', auth, admin, async (req, res, next) => {
 
 // Редактирование песни (админ)
 router.put('/:id', auth, admin, async (req, res, next) => {
-  try {
-    const song = await Song.findByPk(req.params.id);
-    if (!song) return res.status(404).json({ error: 'Песня не найдена' });
-    await song.update(req.body);
-    res.json(song);
-  } catch (e) { next(e); }
+  const oldSong = await Song.findByPk(req.params.id);
+  if (oldSong && oldSong.audio_url && req.body.audio_url !== oldSong.audio_url) {
+    const fs = require('fs');
+    const path = require('path');
+    const oldPath = path.join(__dirname, '..', oldSong.audio_url);
+    if (fs.existsSync(oldPath)) {
+      fs.unlinkSync(oldPath); // Удаляем старый файл с диска
+    }
+  }
+  await oldSong.update(req.body);
 });
 
 // Удаление песни (админ)
