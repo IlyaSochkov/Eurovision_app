@@ -30,6 +30,11 @@ router.put('/users/:id', async (req, res, next) => {
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
     const { role, is_blocked, first_name, last_name } = req.body;
+
+    if (user.role === 'admin' && typeof is_blocked === 'boolean' && is_blocked) {
+      return res.status(403).json({ error: 'Нельзя заблокировать другого администратора' });
+    }
+    
     const updates = {};
     if (role) updates.role = role;
     if (typeof is_blocked === 'boolean') updates.is_blocked = is_blocked;
